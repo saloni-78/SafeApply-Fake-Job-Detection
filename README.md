@@ -333,7 +333,7 @@ SafeApply-Fake-Job-Detection/
 ## ▶️ How to Run
 
 ### Option 1 — Live Demo
-👉 **[Open SafeApply App](https://safeapply-fake-job-detection.streamlit.app)**
+👉 **[Open SafeApply App](https://safeapply-fake-job-detection-apaa6u3rgypmi4d2ntg4rv.streamlit.app/)**
 
 ### Option 2 — Run Locally
 
