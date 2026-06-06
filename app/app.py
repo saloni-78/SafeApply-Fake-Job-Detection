@@ -677,7 +677,7 @@ elif "📈 Model Performance" in page:
     st.dataframe(
         results_df.style
         .highlight_max(subset=["Accuracy","Precision","Recall","F1 Score","ROC-AUC"], color="green")
-        .apply(lambda x: ["background-color: #green; font-weight: bold"
+        .apply(lambda x: ["background-color:green; font-weight: bold"
                           if x.name == 2 else "" for _ in x], axis=1),
         use_container_width=True,
         hide_index=True
