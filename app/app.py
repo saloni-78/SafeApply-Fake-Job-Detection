@@ -13,7 +13,6 @@ matplotlib.use('Agg')  # Non-interactive backend for server environments
 from scipy.sparse import hstack, csr_matrix
 
 
-
 # PAGE CONFIGURATION
 
 
@@ -25,6 +24,7 @@ st.set_page_config(
 )
 
 
+# CUSTOM CSS STYLING
 
 
 st.markdown("""
@@ -96,6 +96,8 @@ st.markdown("""
 
 
 
+# LOAD MODEL - with caching
+
 @st.cache_resource
 def load_model_and_vectorizer():
     """
@@ -139,7 +141,9 @@ def load_model_and_vectorizer():
     return model, tfidf, info
 
 
+
 # TEXT CLEANING FUNCTION
+
 
 
 def clean_text(text):
@@ -155,11 +159,12 @@ def clean_text(text):
 
 # PREDICTION FUNCTION
 
+
 def predict_job_posting(title, description, requirements, benefits,
                          has_logo, telecommuting, has_questions, model, tfidf):
     """
     Make prediction for a single job posting.
- 
+
     Returns:
     --------
     prediction    : int (0 = Real, 1 = Fake)
@@ -169,10 +174,10 @@ def predict_job_posting(title, description, requirements, benefits,
     # ── Step 1: Combine and clean text ──
     combined = f'{title} {description} {requirements} {benefits}'
     cleaned = clean_text(combined)
- 
+
     # ── Step 2: TF-IDF features ──
     text_vector = tfidf.transform([cleaned])
- 
+
     # ── Step 3: All 5 engineered features — MUST match training order exactly ──
     # Order in training: text_length, word_count, has_logo, telecommuting, has_questions
     text_length = len(cleaned)
@@ -184,17 +189,17 @@ def predict_job_posting(title, description, requirements, benefits,
         int(telecommuting),
         int(has_questions)
     ]])
- 
+
     # ── Step 4: Combine TF-IDF + extra features ──
     X = hstack([text_vector, extra])
- 
+
     # ── Step 5: Get raw model probability ──
     proba = model.predict_proba(X)[0][1]  # probability of being fake
- 
+
     # ── Step 6: Rule-based scam detection ──
     # Check text for known scam patterns BEFORE applying threshold
     text_lower = combined.lower()
- 
+
     # Critical scam keywords — any match = definitely flag as fake
     critical_keywords = [
         'registration fee', 'joining fee', 'training fee',
@@ -209,7 +214,7 @@ def predict_job_posting(title, description, requirements, benefits,
         'western union', 'wire transfer',
     ]
     critical_hit = any(kw in text_lower for kw in critical_keywords)
- 
+
     # ── Step 7: Apply threshold with rule-based override ──
     # Threshold = 0.35 (lower than default 0.5 — catching more fraud)
     # Also force FAKE if critical keywords found regardless of model score
@@ -220,12 +225,12 @@ def predict_job_posting(title, description, requirements, benefits,
         prediction = 1
     else:
         prediction = 0
- 
+
     # Rule-based warning flags (extra intelligence!)
     # These are patterns commonly found in fake jobs
     warning_flags = []
     text_lower = combined.lower()
- 
+
     suspicious_phrases = [
         # Generic scam patterns
         ('work from home', 'Suspiciously promotes remote work with no skills needed'),
@@ -266,15 +271,17 @@ def predict_job_posting(title, description, requirements, benefits,
         ('immediate joining', 'Pressure tactic - legitimate jobs have proper notice periods'),
         ('urgent hiring', 'Pressure tactic - real companies take time to hire properly'),
     ]
- 
+
     for phrase, reason in suspicious_phrases:
         if phrase in text_lower:
             warning_flags.append(f'⚠️ Found "{phrase}": {reason}')
- 
+
     return int(prediction), float(proba), warning_flags
- 
+
+
 
 # DRAW PROBABILITY GAUGE CHART
+
 
 def draw_gauge(probability):
     """
@@ -322,7 +329,7 @@ def draw_gauge(probability):
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/find-matching-job--v1.png",
              width=80)
-    st.title("🔍 SafeApply - Fake Job Posting Detector")
+    st.title("🔍 SafeApply - Fake Job Detector")
     st.markdown("---")
 
     # Navigation
@@ -363,8 +370,9 @@ with st.sidebar:
 
 if "🏠 Single Job Check" in page:
 
-    st.markdown('<h1 class="main-header">🔍 Fake Job Posting Detector</h1>',
+    st.markdown('<h1 class="main-header">🔍 SafeApply - Fake Job Posting Detector</h1>',
                 unsafe_allow_html=True)
+
     st.markdown("---")
 
     # Two-column layout
@@ -376,7 +384,7 @@ if "🏠 Single Job Check" in page:
         # Input fields
         title = st.text_input(
             "Job Title *",
-            placeholder="e.g., Senior Software Engineer ",
+            placeholder="e.g., Senior Software Engineer",
             help="Enter the exact job title as shown in the posting"
         )
 
@@ -399,14 +407,26 @@ if "🏠 Single Job Check" in page:
             height=80
         )
 
-        # Radio buttons and checkboxes
-        col_a, col_b = st.columns(2)
+        # Checkboxes — all default False (unknown = do not assume)
+        col_a, col_b, col_c = st.columns(3)
         with col_a:
-            has_logo = st.checkbox("Company has logo? ✓", value=True,
-                                   help="Does the job posting include a company logo?")
+            has_logo = st.checkbox(
+                "Has company logo?",
+                value=False,
+                help="Does the posting show a verified company logo? Leave unchecked if unsure."
+            )
         with col_b:
-            telecommuting = st.checkbox("Remote/Telecommute?",
-                                        help="Is this a remote work position?")
+            telecommuting = st.checkbox(
+                "Remote/Telecommute?",
+                value=False,
+                help="Is this advertised as a remote work position?"
+            )
+        with col_c:
+            has_questions = st.checkbox(
+                "Has screening questions?",
+                value=False,
+                help="Does the posting include application questions? Real jobs usually do."
+            )
 
         # Predict button
         predict_btn = st.button(
@@ -429,13 +449,11 @@ if "🏠 Single Job Check" in page:
                 with st.spinner("Analyzing job posting..."):
                     prediction, probability, flags = predict_job_posting(
                         title, description, requirements, benefits,
-                        has_logo, telecommuting, model, tfidf
+                        has_logo, telecommuting, has_questions, model, tfidf
                     )
 
-                # Display result
-                # Show FAKE if model says so OR if any critical fee flags found
-                critical_flags = [f for f in flags if 'NEVER' in f or 'NEVER' in f.upper() or 'registration fee' in f.lower() or 'pay to start' in f.lower()]
-                if prediction == 1 or len(critical_flags) > 0:
+                # Display result — prediction already includes rule-based override
+                if prediction == 1:
                     st.markdown(
                         '<div class="result-fake">🚨 LIKELY FAKE JOB!<br>'
                         f'Fraud Probability: {probability:.1%}</div>',
@@ -489,7 +507,9 @@ if "🏠 Single Job Check" in page:
             """)
 
 
+
 # PAGE 2: BULK CSV CHECK
+
 
 elif "📊 Bulk CSV Check" in page:
 
@@ -563,9 +583,10 @@ elif "📊 Bulk CSV Check" in page:
                         logo_val  = int(row.get('has_company_logo', 1))
                         tele_val  = int(row.get('telecommuting', 0))
 
+                        quest_val = int(row.get('has_questions', 0))
                         pred, prob, _ = predict_job_posting(
                             title_val, desc_val, req_val, ben_val,
-                            logo_val, tele_val, model, tfidf
+                            logo_val, tele_val, quest_val, model, tfidf
                         )
 
                         results_list.append({
@@ -617,15 +638,16 @@ elif "📊 Bulk CSV Check" in page:
             st.info("Make sure your CSV has 'title' and 'description' columns.")
 
 
+# ═══════════════════════════════════════════════════════════
 # PAGE 3: MODEL PERFORMANCE
-
+# ═══════════════════════════════════════════════════════════
 
 elif "📈 Model Performance" in page:
- 
+
     st.title("📈 Model Performance Dashboard")
-    st.markdown("Complete comparison of all three trained models ")
+    st.markdown("Complete comparison of all three trained models")
     st.markdown("---")
- 
+
     # ── Dataset Overview ──
     st.subheader("📊 Dataset Overview")
     d1, d2, d3, d4 = st.columns(4)
@@ -637,12 +659,12 @@ elif "📈 Model Performance" in page:
         "⚠️ **Class Imbalance:** Only 4.5% of jobs are fake. "
         "Solved using SMOTE — balanced training set to 50% fake / 50% real."
     )
- 
+
     st.markdown("---")
- 
+
     # ── All 3 Models Results Table ──
     st.subheader("🤖 All Models — Results Comparison")
- 
+
     results_data = {
         "Model": ["Logistic Regression", "Random Forest", "XGBoost ✅ Best"],
         "Accuracy":  ["0.9712", "0.9827", "0.9801"],
@@ -654,16 +676,16 @@ elif "📈 Model Performance" in page:
     results_df = pd.DataFrame(results_data)
     st.dataframe(
         results_df.style
-        .highlight_max(subset=["Accuracy","Precision","Recall","F1 Score","ROC-AUC"], color="#0ae63d")
-        .apply(lambda x: ["background-color: #0ae63d; font-weight: bold"
+        .highlight_max(subset=["Accuracy","Precision","Recall","F1 Score","ROC-AUC"], color="green")
+        .apply(lambda x: ["background-color: #green; font-weight: bold"
                           if x.name == 2 else "" for _ in x], axis=1),
         use_container_width=True,
         hide_index=True
     )
     st.caption("✅ Green = best value in column  |  Green row = selected model (XGBoost)")
- 
+
     st.markdown("---")
- 
+
     # ── Best Model Metrics ──
     st.subheader("🏆 Best Model — XGBoost")
     c1, c2, c3, c4, c5 = st.columns(5)
@@ -672,15 +694,15 @@ elif "📈 Model Performance" in page:
     c3.metric("Recall",    "0.8324", delta="Most important!", help="Of all actual fakes, how many did we catch")
     c4.metric("F1 Score",  "0.8022", help="Balance between Precision and Recall")
     c5.metric("ROC-AUC",   "0.9852", help="Overall discrimination ability — 1.0 = perfect")
- 
+
     st.markdown("---")
- 
+
     # ── Bar Chart Comparison ──
     st.subheader("📊 Visual Comparison — All Models")
- 
+
     import matplotlib.pyplot as plt
     import numpy as np
- 
+
     models = ["LR", "RF", "XGBoost"]
     metrics_vals = {
         "Accuracy":  [0.9712, 0.9827, 0.9801],
@@ -689,10 +711,10 @@ elif "📈 Model Performance" in page:
         "F1 Score":  [0.7553, 0.7933, 0.8022],
         "ROC-AUC":   [0.9918, 0.9891, 0.9852],
     }
- 
+
     fig, axes = plt.subplots(1, 5, figsize=(16, 4))
     colors = ["#3498db", "#e74c3c", "#2ecc71"]
- 
+
     for ax, (metric, vals) in zip(axes, metrics_vals.items()):
         bars = ax.bar(models, vals, color=colors, edgecolor="white", linewidth=0.5)
         ax.set_title(metric, fontweight="bold", fontsize=10)
@@ -707,19 +729,19 @@ elif "📈 Model Performance" in page:
         best_idx = vals.index(max(vals))
         bars[best_idx].set_edgecolor("gold")
         bars[best_idx].set_linewidth(2.5)
- 
+
     plt.suptitle("Model Comparison — All Metrics", fontsize=13, fontweight="bold", y=1.02)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close()
- 
+
     st.markdown("---")
- 
+
     # ── Model Analysis ──
     st.subheader("🔍 Why XGBoost Was Selected")
- 
+
     col1, col2, col3 = st.columns(3)
- 
+
     with col1:
         st.markdown("""
         **Logistic Regression**
@@ -729,7 +751,7 @@ elif "📈 Model Performance" in page:
         - ❌ Too many real jobs wrongly flagged as fake
         - **Verdict:** Too many false alarms
         """)
- 
+
     with col2:
         st.markdown("""
         **Random Forest**
@@ -739,7 +761,7 @@ elif "📈 Model Performance" in page:
         - ❌ Misses **31%** of actual fake jobs
         - **Verdict:** Lets too many frauds through
         """)
- 
+
     with col3:
         st.markdown("""
         **XGBoost ✅ Selected**
@@ -749,18 +771,18 @@ elif "📈 Model Performance" in page:
         - ✅ Best overall balance
         - **Verdict:** Best practical model
         """)
- 
+
     st.info(
         "💡 **Key Insight:** For fraud detection, **Recall matters more than Precision**. "
         "Missing a fake job is MORE harmful than a false alarm. "
         "XGBoost gives the best practical balance with F1=0.8022 and Recall=0.8324."
     )
- 
+
     st.markdown("---")
- 
+
     # ── Metrics Explanation ──
     st.subheader("📖 Understanding the Metrics")
- 
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
@@ -768,7 +790,7 @@ elif "📈 Model Performance" in page:
         - Overall % of correct predictions
         - ⚠️ *Not reliable for imbalanced data!*
         - Predict all Real → 95.5% accuracy, 0 frauds caught
- 
+
         **Precision**
         - Of all jobs flagged as fake, what % were actually fake?
         - High precision = fewer false alarms on real jobs
@@ -779,15 +801,15 @@ elif "📈 Model Performance" in page:
         - Of all actual fake jobs, what % did we catch?
         - ⭐ *Most important for fraud detection!*
         - Low recall = many frauds slip through undetected
- 
+
         **F1 Score**
         - Harmonic mean of Precision and Recall
         - Formula: 2 × (P × R) / (P + R)
         - Best single metric for imbalanced classification
         """)
- 
+
     st.markdown("---")
- 
+
     # ── Training Pipeline ──
     st.subheader("🔧 Training Pipeline")
     st.code("""
@@ -811,20 +833,21 @@ Evaluate on Test Set  (F1, Recall, Precision, ROC-AUC)
      ↓
 Save Best Model  (joblib → best_model.pkl + tfidf_vectorizer.pkl)
     """, language=None)
- 
 
 
+# ═══════════════════════════════════════════════════════════
 # PAGE 4: ABOUT
+# ═══════════════════════════════════════════════════════════
 
 elif "ℹ️ About" in page:
- 
+
     st.title("ℹ️ About SafeApply")
     st.markdown("Fake Job Posting Detection — End-to-End ML Project")
     st.markdown("---")
- 
+
     # ── Problem + Solution ──
     col1, col2 = st.columns(2)
- 
+
     with col1:
         st.subheader("🎯 Problem Statement")
         st.markdown("""
@@ -834,11 +857,11 @@ elif "ℹ️ About" in page:
         - Charge illegal registration / training fees
         - Trick applicants into money laundering
         - Waste time with fake interview calls
- 
+
         **SafeApply detects these scams automatically
         before the job seeker applies.**
         """)
- 
+
     with col2:
         st.subheader("💡 Our Solution")
         st.markdown("""
@@ -850,9 +873,9 @@ elif "ℹ️ About" in page:
         - Deploys as a **live Streamlit web app**
         - Flags **37 scam patterns** with rule-based checks
         """)
- 
+
     st.markdown("---")
- 
+
     # ── Dataset ──
     st.subheader("📊 Dataset")
     d1, d2, d3, d4 = st.columns(4)
@@ -861,12 +884,12 @@ elif "ℹ️ About" in page:
     d3.metric("Real Jobs", "9,370 (95.5%)")
     d4.metric("Fake Jobs", "442 (4.5%)")
     st.caption("Source: Kaggle — University of the Aegean, Greece")
- 
+
     st.markdown("---")
- 
+
     # ── Technical Approach ──
     st.subheader("🔬 Technical Approach")
- 
+
     t1, t2 = st.columns(2)
     with t1:
         st.markdown("""
@@ -888,11 +911,10 @@ elif "ℹ️ About" in page:
         | **Best Model** | XGBoost — F1=0.8022, Recall=0.8324 |
         | **Evaluation** | F1 Score, Recall, Precision, ROC-AUC |
         """)
- 
-    st.markdown("---")
- 
 
- 
+    st.markdown("---")
+
+
     # ── Key Learnings ──
     st.subheader("💡 Key Learnings")
     st.markdown("""
@@ -903,10 +925,8 @@ elif "ℹ️ About" in page:
     5. **Word clouds showed** fake and real jobs use similar vocab — ML is necessary over keyword rules
     6. **Recall > Precision** for fraud — missing a scam is worse than a false alarm
     """)
- 
+
     st.markdown("---")
- 
- 
+
+
     st.caption("Built with 🤍 using Python · Scikit-learn · XGBoost · Streamlit")
- 
-   
