@@ -287,7 +287,7 @@ A 4-page interactive web application:
 | 🏠 **Single Job Check** | Enter title + description → prediction + fraud probability gauge + 37 rule-based warning flags |
 | 📊 **Bulk CSV Upload** | Upload CSV → batch predictions → download results with risk levels |
 | 📈 **Model Performance** | Full dashboard — all 3 model results, bar charts, metrics explanation |
-| ℹ️ **About** | Project documentation, GitHub structure, tech stack, key learnings |
+| ℹ️ **About** | Project documentation, tech stack, key learnings |
 
 **37 rule-based warning flags including:**
 ```
