@@ -155,51 +155,77 @@ def clean_text(text):
 
 # PREDICTION FUNCTION
 
-
 def predict_job_posting(title, description, requirements, benefits,
-                         has_logo, telecommuting, model, tfidf):
+                         has_logo, telecommuting, has_questions, model, tfidf):
     """
     Make prediction for a single job posting.
-
+ 
     Returns:
     --------
-    prediction  : int (0 = Real, 1 = Fake)
-    probability : float (probability of being fake, 0 to 1)
+    prediction    : int (0 = Real, 1 = Fake)
+    probability   : float (probability of being fake, 0 to 1)
     warning_flags : list of strings (suspicious patterns found)
     """
-    # Combine all text fields
+    # ── Step 1: Combine and clean text ──
     combined = f'{title} {description} {requirements} {benefits}'
     cleaned = clean_text(combined)
-
-    # Convert to TF-IDF features
+ 
+    # ── Step 2: TF-IDF features ──
     text_vector = tfidf.transform([cleaned])
-
-    # Engineered features (same as training)
+ 
+    # ── Step 3: All 5 engineered features — MUST match training order exactly ──
+    # Order in training: text_length, word_count, has_logo, telecommuting, has_questions
     text_length = len(cleaned)
-    word_count = len(cleaned.split())
-    extra = csr_matrix([[text_length, word_count, int(has_logo),
-                         int(telecommuting), 0]])
-
-    # Combine features
+    word_count  = len(cleaned.split())
+    extra = csr_matrix([[
+        text_length,
+        word_count,
+        int(has_logo),
+        int(telecommuting),
+        int(has_questions)
+    ]])
+ 
+    # ── Step 4: Combine TF-IDF + extra features ──
     X = hstack([text_vector, extra])
-
-    # Get prediction and probability
-    prediction = model.predict(X)[0]
-    proba = model.predict_proba(X)[0][1]  # probability of fake
-
-    # Lower threshold from 0.5 to 0.3 for fraud detection
-    # Missing a fake job is more harmful than a false alarm
-    # So we flag as fake at 30% probability instead of 50%
-    if proba >= 0.3:
+ 
+    # ── Step 5: Get raw model probability ──
+    proba = model.predict_proba(X)[0][1]  # probability of being fake
+ 
+    # ── Step 6: Rule-based scam detection ──
+    # Check text for known scam patterns BEFORE applying threshold
+    text_lower = combined.lower()
+ 
+    # Critical scam keywords — any match = definitely flag as fake
+    critical_keywords = [
+        'registration fee', 'joining fee', 'training fee',
+        'processing fee', 'deposit fee', 'pay to start',
+        'fee to apply', 'upfront fee',
+        'earn 50000', 'earn 40000', 'earn 30000', 'earn 20000',
+        'lakh per month', 'lakhs per month',
+        'weekly from home', 'earn weekly', 'earn daily',
+        'form filling', 'copy paste job', 'typing job',
+        'data entry work from home', 'work from mobile',
+        'no skills required', 'no qualification required',
+        'western union', 'wire transfer',
+    ]
+    critical_hit = any(kw in text_lower for kw in critical_keywords)
+ 
+    # ── Step 7: Apply threshold with rule-based override ──
+    # Threshold = 0.35 (lower than default 0.5 — catching more fraud)
+    # Also force FAKE if critical keywords found regardless of model score
+    if critical_hit:
+        prediction = 1
+        proba = max(proba, 0.75)  # boost probability display for critical hits
+    elif proba >= 0.35:
         prediction = 1
     else:
         prediction = 0
-
+ 
     # Rule-based warning flags (extra intelligence!)
     # These are patterns commonly found in fake jobs
     warning_flags = []
     text_lower = combined.lower()
-
+ 
     suspicious_phrases = [
         # Generic scam patterns
         ('work from home', 'Suspiciously promotes remote work with no skills needed'),
@@ -240,13 +266,13 @@ def predict_job_posting(title, description, requirements, benefits,
         ('immediate joining', 'Pressure tactic - legitimate jobs have proper notice periods'),
         ('urgent hiring', 'Pressure tactic - real companies take time to hire properly'),
     ]
-
+ 
     for phrase, reason in suspicious_phrases:
         if phrase in text_lower:
             warning_flags.append(f'⚠️ Found "{phrase}": {reason}')
-
+ 
     return int(prediction), float(proba), warning_flags
-
+ 
 
 # DRAW PROBABILITY GAUGE CHART
 
