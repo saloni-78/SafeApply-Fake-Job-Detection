@@ -202,35 +202,48 @@ def predict_job_posting(title, description, requirements, benefits,
 
     # Critical scam keywords — any match = definitely flag as fake
     critical_keywords = [
-        'registration fee', 'joining fee', 'training fee',
-        'processing fee', 'deposit fee', 'pay to start',
-        'fee to apply', 'upfront fee',
-        'earn 50000', 'earn 40000', 'earn 30000', 'earn 20000',
-        'lakh per month', 'lakhs per month',
-        'weekly from home', 'earn weekly', 'earn daily',
-        'form filling', 'copy paste job', 'typing job',
-        'data entry work from home', 'work from mobile',
-        'no skills required', 'no qualification required',
-        'western union', 'wire transfer',
+        # Fee-based — real employers NEVER charge candidates
+        'registration fee',
+        'joining fee',
+        'training fee',
+        'processing fee',
+        'deposit fee',
+        'pay to start',
+        'fee to apply',
+        'upfront fee',
+        # Financial fraud — no legitimate job uses these
+        'western union',
+        'wire transfer',
+        'money transfer',
     ]
     critical_hit = any(kw in text_lower for kw in critical_keywords)
 
-    # ── Step 7: Apply threshold with rule-based override ──
-    # Threshold = 0.35 (lower than default 0.5 — catching more fraud)
-    # Also force FAKE if critical keywords found regardless of model score
+    # ── Step 7: Hybrid decision — Rule-based + ML ──
+    #
+    # LAYER 1 — Rule-based (for 100% obvious scams only):
+    #   If critical keyword found → force FAKE immediately
+    #   These are things like "pay registration fee" — no real job ever says this
+    #
+    # LAYER 2 — ML model (for subtle, hidden scams):
+    #   Short descriptions, vague requirements, missing company details,
+    #   suspicious word patterns — things a keyword filter cannot catch
+    #   Threshold = 0.35 (lower than default 0.5 to catch more fraud)
+    #
+    # This is called a HYBRID SYSTEM — same approach used by LinkedIn, Indeed, Naukri
+ 
     if critical_hit:
         prediction = 1
-        proba = max(proba, 0.75)  # boost probability display for critical hits
+        proba = max(proba, 0.80)  # show high probability for fee/financial fraud
     elif proba >= 0.35:
-        prediction = 1
+        prediction = 1            # ML caught subtle fraud
     else:
-        prediction = 0
-
+        prediction = 0            # ML says real job
+ 
     # Rule-based warning flags (extra intelligence!)
     # These are patterns commonly found in fake jobs
     warning_flags = []
     text_lower = combined.lower()
-
+ 
     suspicious_phrases = [
         # Generic scam patterns
         ('work from home', 'Suspiciously promotes remote work with no skills needed'),
@@ -271,6 +284,7 @@ def predict_job_posting(title, description, requirements, benefits,
         ('immediate joining', 'Pressure tactic - legitimate jobs have proper notice periods'),
         ('urgent hiring', 'Pressure tactic - real companies take time to hire properly'),
     ]
+ 
 
     for phrase, reason in suspicious_phrases:
         if phrase in text_lower:
@@ -638,9 +652,9 @@ elif "📊 Bulk CSV Check" in page:
             st.info("Make sure your CSV has 'title' and 'description' columns.")
 
 
-# ═══════════════════════════════════════════════════════════
+
 # PAGE 3: MODEL PERFORMANCE
-# ═══════════════════════════════════════════════════════════
+
 
 elif "📈 Model Performance" in page:
 
@@ -871,7 +885,7 @@ elif "ℹ️ About" in page:
         - Handles **4.5% class imbalance** using SMOTE
         - Compares **3 ML models** and selects the best
         - Deploys as a **live Streamlit web app**
-        - Flags **37 scam patterns** with rule-based checks
+        - Flags **34 scam patterns** with rule-based checks
         """)
 
     st.markdown("---")
