@@ -492,10 +492,10 @@ if "🏠 Single Job Check" in page:
             <p style="color:#9e9e9e;margin:0 0 0.8rem 0;">👈 Fill in job details and click <strong>Analyze</strong></p>
             <p style="color:#e8eaf6;font-size:0.9rem;margin:0 0 0.5rem 0;"><strong>What we check:</strong></p>
             <ul style="color:#9e9e9e;font-size:0.85rem;margin:0;padding-left:1.2rem;">
-            <li>TF-IDF language patterns (10,000 features + bigrams)</li>
+            <li>TF-IDF language patterns (20,000 features + bigrams + trigrams)</li>
             <li>Text length and word count</li>
             <li>Company logo and screening questions</li>
-            <li>35 scam phrase patterns</li>
+            <li>24 scam phrase patterns</li>
             <li>11 fee/financial fraud keywords</li>
             <li>Multi-pattern scam detection</li>
             </ul>
