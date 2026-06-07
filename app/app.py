@@ -17,7 +17,7 @@ st.set_page_config(
     page_title="SafeApply",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded"
+   initial_sidebar_state="auto"
 )
 
 st.markdown("""
@@ -71,16 +71,25 @@ st.markdown("""
         border-radius: 10px; padding: 0.6rem;
     }
 
-    /* ── Hide streamlit chrome ── */
+   /* ── Hide streamlit chrome ── */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-            
-    /* Hide header content but keep sidebar toggle visible */
-       header[data-testid="stHeader"] { background: transparent !important; }
-       header[data-testid="stHeader"] > * { visibility: hidden; }
-       header[data-testid="stHeader"] button[data-testid="collapsedControl"] {
-       visibility: visible !important;
-      }
+
+    /* ── Sidebar toggle — force visible across all Streamlit versions ── */
+    [data-testid="collapsedControl"] {
+        visibility: visible !important;
+        display: flex !important;
+        opacity: 1 !important;
+    }
+
+    /* Hide other header elements but NOT the toggle ── */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        height: 2.5rem;
+    }
+    header[data-testid="stHeader"] > div:not(:has([data-testid="collapsedControl"])) {
+        visibility: hidden;
+    }
 
 
     /* ── Sidebar ── */
