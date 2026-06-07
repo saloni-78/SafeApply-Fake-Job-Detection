@@ -17,7 +17,7 @@ st.set_page_config(
     page_title="SafeApply",
     page_icon="🛡️",
     layout="wide",
-   initial_sidebar_state="auto"
+   initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
@@ -74,22 +74,6 @@ st.markdown("""
    /* ── Hide streamlit chrome ── */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-
-    /* ── Sidebar toggle — force visible across all Streamlit versions ── */
-    [data-testid="collapsedControl"] {
-        visibility: visible !important;
-        display: flex !important;
-        opacity: 1 !important;
-    }
-
-    /* Hide other header elements but NOT the toggle ── */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        height: 2.5rem;
-    }
-    header[data-testid="stHeader"] > div:not(:has([data-testid="collapsedControl"])) {
-        visibility: hidden;
-    }
 
 
     /* ── Sidebar ── */
