@@ -74,12 +74,19 @@ st.markdown("""
     /* ── Hide streamlit chrome ── */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+            
+    /* Hide header content but keep sidebar toggle visible */
+       header[data-testid="stHeader"] { background: transparent !important; }
+       header[data-testid="stHeader"] > * { visibility: hidden; }
+       header[data-testid="stHeader"] button[data-testid="collapsedControl"] {
+       visibility: visible !important;
+      }
+
 
     /* ── Sidebar ── */
     section[data-testid="stSidebar"] {
-        background: #13151f;
-        border-right: 1px solid #2d3148;
+        background: #1a1d2e;
+        border-right: 2px solid #3d4172;
     }
 
     /* ── Divider ── */
