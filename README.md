@@ -355,12 +355,12 @@ Three models trained with balanced class weights, evaluated on the original test
 
 | | Predicted Real | Predicted Fake |
 |--|:--:|:--:|
-| **Actual Real** | ✅ 3,361 correctly identified | ❌ 42 real jobs wrongly flagged |
+| **Actual Real** | ✅ 3,388 correctly identified | ❌ 15 real jobs wrongly flagged |
 | **Actual Fake** | ❌ 38 frauds missed | ✅ 135 frauds correctly caught |
 
 - **135 out of 173 fake jobs caught** → 78.0% Recall
 - Only **38 fake jobs missed** — acceptable for real-world deployment
-- Only **42 false alarms** out of 3,403 real jobs → 98.8% Specificity
+- Only **15 false alarms** out of 3,403 real jobs → 99.6% Specificity
 
 > Test set: 3,576 total rows (3,403 real + 173 fake)
 
