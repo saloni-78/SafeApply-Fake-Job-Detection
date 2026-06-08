@@ -729,47 +729,6 @@ elif "📈 Model Performance" in page:
     
     st.markdown("---")
 
-    # Training pipeline
-    st.markdown("#### 🔧 Training Pipeline")
-    st.code("""
-Raw CSV (fake_job_postings.csv)
-    ↓  pd.read_csv(engine='python', on_bad_lines='skip')
-
-Text Combination
-    ↓  title + company_profile + description + requirements + benefits
-
-Text Cleaning
-    ↓  lowercase → remove HTML tags → remove URLs → remove special chars
-
-TF-IDF Vectorization
-    ↓  max_features=20000, ngram_range=(1,3),min_df=2,max_df=0.95,sublinear_tf=True, fit ONLY on training data
-    ↓  20,000 text features 
-
-Feature Engineering
-    ↓  text_length, word_count, has_logo, telecommuting, has_questions
-    ↓  scipy.sparse.hstack → 20,005 total features
-
-Train-Test Split
-    ↓  80% train / 20% test, stratify=y 
-
-Class Imbalance Handling
-    ↓  class_weight='balanced' in all models
-    ↓  Fake jobs weighted ~20x higher than real jobs
-    ↓  Note: SMOTE was NOT used — it does not work well on sparse
-    ↓  TF-IDF matrices (20,000 dimensions causes unrealistic interpolation)
-
-Model Training
-    ↓  Logistic Regression (class_weight='balanced')
-    ↓  Random Forest      (class_weight='balanced', n_estimators=200)
-    ↓  XGBoost            (scale_pos_weight=19.6, n_estimators=300)
-
-Model Selection
-    ↓  Best model selected by highest F1 Score → XGBoost wins
-
-Save
-    →  best_model.pkl + tfidf_vectorizer.pkl (joblib)
-    """, language=None)
-
 
 
 # PAGE 4: ABOUT
@@ -793,7 +752,7 @@ elif "ℹ️ About" in page:
         **SafeApply detects these automatically before you apply.**
         """)
     with col2:
-        st.markdown("#### 💡 Hybrid Detection System")
+        st.markdown("#### 💡 Solution - Hybrid Detection System")
         st.markdown("""
 
         🔴 **Layer 1 — Fee/financial fraud**

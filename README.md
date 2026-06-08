@@ -375,7 +375,7 @@ A 4-page interactive web application with a **three-layer hybrid detection engin
 | 🏠 **Single Job Check** | Title + description → hybrid prediction + fraud probability gauge + warning flags |
 | 📊 **Bulk CSV Upload** | Upload CSV → batch predictions → download results with risk levels |
 | 📈 **Model Performance** | Full dashboard — all 3 model results, bar charts, metrics explanation |
-| ℹ️ **About** | Project documentation, hybrid system explanation, GitHub structure |
+| ℹ️ **About** | Project documentation, hybrid system explanation |
 
 **Detection layers in the app:**
 
