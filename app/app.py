@@ -811,16 +811,6 @@ elif "ℹ️ About" in page:
 
     st.markdown("---")
 
-    st.markdown("#### 📊 Dataset")
-    d1, d2, d3, d4 = st.columns(4)
-    d1.metric("Name",      "EMSCAD")
-    d2.metric("Total Rows","17,880")
-    d3.metric("Real Jobs", "17,014 (95.2%)")
-    d4.metric("Fake Jobs", "866(4.8%)")
-    st.caption("Source: Kaggle — University of the Aegean, Greece")
-
-    st.markdown("---")
-
     st.markdown("#### 🔬 Technical Details")
     t1, t2 = st.columns(2)
     with t1:
@@ -846,45 +836,4 @@ elif "ℹ️ About" in page:
 
     st.markdown("---")
 
-    st.markdown("#### 📁 GitHub Repository Structure")
-    st.code("""
-SafeApply-Fake-Job-Detection/
-├── 📓 notebooks/
-│   └── fake_job_detection.ipynb   ← Full training notebook (Google Colab)
-│
-├── 🌐 app/
-│   └── app.py                     ← This Streamlit app (4 pages)
-│
-├── 🤖 models/
-│   ├── best_model.pkl             ← Saved XGBoost model (joblib)
-│   ├── tfidf_vectorizer.pkl       ← Saved TF-IDF vectorizer
-│   └── model_info.json            ← F1, Recall, Precision, ROC-AUC summary
-│
-├── 📊 assets/
-│   ├── class_distribution.png
-│   ├── wordclouds.png
-│   ├── feature_analysis.png
-│   ├── model_comparison.png
-│   ├── roc_curves.png
-│   └── confusion_matrix.png
-│
-├── requirements.txt               ← Python dependencies (no version pins)
-├── .gitignore
-└── README.md                      ← Full documentation with images
-    """, language=None)
-
-    st.markdown("---")
-
-    st.markdown("#### 💡 Key Learnings")
-    st.markdown("""
-    1. **Keyword filters alone are insufficient** — scammers copy real job language. ML finds hidden statistical patterns that keywords cannot detect
-    2. **Hybrid systems work best** — rule-based for obvious fraud (fee keywords) + ML for subtle fraud (vague descriptions, short text)
-    3. **Accuracy is misleading** for imbalanced data —  Use F1 and Recall instead
-    4. **SMOTE does not work on sparse TF-IDF matrices** — 20,000-dimensional sparse vectors make SMOTE create unrealistic synthetic text. Used class_weight='balanced' instead
-    5. **Feature order must match exactly** between training notebook and prediction function — any mismatch = completely wrong predictions
-    6. **Recall > Precision** for fraud detection — missing a scam is more harmful than a false alarm
-    7. **Multiple scam patterns together** = much higher fraud confidence than any single pattern alone
-    """)
-
-    st.markdown("---")
     st.caption("Built with 🤍 | Python · Scikit-learn · XGBoost · Streamlit | GitHub: saloni-78")
