@@ -650,84 +650,12 @@ elif "📈 Model Performance" in page:
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Accuracy",  "0.9852", help="Overall correct predictions — but misleading for imbalanced data")
     c2.metric("Precision", "0.9000", help="Of all jobs flagged as fake, 90% were actually fake")
-    c3.metric("Recall",    "0.7803", delta="Key metric", help="Of all actual fake jobs, 78% were caught")
+    c3.metric("Recall",    "0.7803", help="Of all actual fake jobs, 78% were caught")
     c4.metric("F1 Score",  "0.8359", help="Harmonic mean of Precision and Recall — best overall metric")
     c5.metric("ROC-AUC",   "0.9887", help="Area under ROC curve — 1.0 = perfect, 0.5 = random")
 
     st.markdown("---")
 
-    # Bar chart
-    st.markdown("#### 📊 Visual Comparison")
-    models_list  = ["LR", "RF", "XGB"]
-    metrics_dict = {
-        "Accuracy":  [0.9628, 0.9648, 0.9852],
-        "Precision": [0.5714, 0.6218, 0.9000],
-        "Recall":    [0.9249, 0.6936, 0.7803],
-        "F1 Score":  [0.7064, 0.6557, 0.8359],
-        "ROC-AUC":   [0.9929, 0.9789, 0.9887],
-    }
-    colors_bar = ["#3498db", "#e74c3c", "#2ecc71"]
-    fig, axes  = plt.subplots(1, 5, figsize=(16, 4))
-    fig.patch.set_facecolor('#1a1d27')
-
-    for ax, (metric, vals) in zip(axes, metrics_dict.items()):
-        ax.set_facecolor('#1a1d27')
-        bars = ax.bar(models_list, vals, color=colors_bar, edgecolor='#2d3148', linewidth=0.8)
-        ax.set_title(metric, fontweight="bold", fontsize=10, color='white', pad=6)
-        ax.set_ylim(0, 1.18)
-        ax.grid(axis="y", alpha=0.2, color='white')
-        ax.tick_params(colors='white', labelsize=8)
-        for spine in ax.spines.values(): spine.set_edgecolor('#2d3148')
-        for bar, val in zip(bars, vals):
-            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
-                    f"{val:.3f}", ha="center", fontsize=7, fontweight="bold", color='white')
-        best_idx = vals.index(max(vals))
-        bars[best_idx].set_edgecolor("gold")
-        bars[best_idx].set_linewidth(2.5)
-
-    plt.suptitle("Model Comparison — All Metrics (gold border = best in column)",
-                 fontsize=11, fontweight="bold", color='white', y=1.02)
-    plt.tight_layout()
-    st.pyplot(fig, use_container_width=True)
-    plt.close()
-
-    st.markdown("---")
-
-    # Why XGBoost
-    st.markdown("#### 🔍 Why XGBoost Was Selected")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        **Logistic Regression**
-        - ✅ Highest Recall: **0.9249**
-        - ✅ Highest ROC-AUC: **0.9929**
-        - ❌ Lowest Precision: **0.5714**
-        - 4 out of every 10 alerts are false alarms
-        - **Verdict:** Too many real jobs wrongly flagged
-        """)
-    with col2:
-        st.markdown("""
-        **Random Forest**
-        - ✅ Middle Precision: **0.6218**
-        - ❌ Lowest Recall: **0.6936**
-        - ❌ Lowest F1: **0.6557**
-        - Misses 30% of actual fake jobs
-        - **Verdict:** Worst overall — not suitable
-        """)
-    with col3:
-        st.markdown("""
-        **XGBoost ✅ Selected**
-        - ✅ Best F1: **0.8359**
-        - ✅ Best Precision: **0.9000**
-        - ✅ Strong Recall: **0.7803**
-        - Best balance across all metrics
-        - **Verdict:** Best practical model
-        """)
-
-    st.info("💡 **Key principle:** For fraud detection, Recall matters most — missing a fake job is more harmful than a false alarm. XGBoost gives the best practical balance with F1=0.8359.")
-
-    
-    st.markdown("---")
 
 
 
@@ -770,29 +698,5 @@ elif "ℹ️ About" in page:
 
     st.markdown("---")
 
-    st.markdown("#### 🔬 Technical Details")
-    t1, t2 = st.columns(2)
-    with t1:
-        st.markdown("""
-        | Component | Detail |
-        |-----------|--------|
-        | Text fields | title + company_profile + description + requirements + benefits |
-        | Text cleaning | lowercase, remove HTML/URLs/special chars |
-        | TF-IDF | 20,000 features, unigrams + bigrams + trigrams |
-        | Extra features | text_length, word_count, has_logo, telecommuting, has_questions |
-        | Total features | 20,005 (via scipy.sparse.hstack) |
-        """)
-    with t2:
-        st.markdown("""
-        | Component | Detail |
-        |-----------|--------|
-        | Class imbalance | class_weight='balanced' — fake jobs ~20x higher weight |
-        | Why not SMOTE | Does not work on sparse 20,000-dim TF-IDF matrices |
-        | Train/Test | 80% / 20%, stratify=y |
-        | Best model | XGBoost — F1=0.8359, Recall=0.7803, Precision=0.9000 |
-        | App threshold | 0.35 (lower than default 0.5 — better Recall) |
-        """)
-
-    st.markdown("---")
 
     st.caption("Built with 🤍 | Python · Scikit-learn · XGBoost · Streamlit | GitHub: saloni-78")
