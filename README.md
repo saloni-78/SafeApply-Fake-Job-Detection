@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ SafeApply — Fake Job Posting Detection
+# 🛡️ SafeApply — Fake Job Posting Detection System
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
