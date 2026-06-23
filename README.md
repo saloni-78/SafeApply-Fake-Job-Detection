@@ -518,9 +518,9 @@ MIT License — free to use, modify, and distribute with attribution.
 
 ---
 
-## 👤 Authors
+## 👤 Author
 
-**Priya · Bhawana · Saloni**
+**Saloni
 
 ---
 
