@@ -126,10 +126,10 @@ Job Posting Text
 │  • Hidden statistical word patterns                  │
 │  • Unusual text length and word count                │
 │                                                      │
-│  20,005 features | Threshold = 0.35                  │
+│  20,005 features | Threshold = 0.5                 │
 └──────────────────────────────────────────────────────┘
        │                        │
-  prob ≥ 0.35 ──→ 🚨 FAKE    prob < 0.35 ──→ ✅ REAL
+  prob ≥ 0.5 ──→ 🚨 FAKE    prob < 0.5 ──→ ✅ REAL
 ```
 
 ### Why ML is essential — not just keywords
@@ -393,7 +393,7 @@ Layer 2a — Scam pattern counter:
 Layer 2b — Combined signal:
   2+ phrases AND ML probability ≥ 0.20 → FAKE (prob ≥ 0.70)
 
-Layer 3 — ML Model (XGBoost, threshold=0.35):
+Layer 3 — ML Model (XGBoost, threshold=0.5):
   20,005 features catch subtle fraud: vague descriptions,
   short text, missing company details, suspicious word patterns
 
