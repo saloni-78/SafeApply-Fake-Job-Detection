@@ -217,10 +217,8 @@ def predict_job_posting(title, company_profile, description,
         prediction = 1
         proba = max(proba, 0.70)
 
-    # Layer 3: ML model alone (threshold=0.35, lower than default 0.5)
-    # Lower threshold = higher Recall = catch more frauds
-    # Acceptable trade-off: slightly more false alarms vs missing real fraud
-    elif proba >= 0.35:
+    # Layer 3: ML model alone (threshold=0.5)
+    elif proba >= 0.5:
         prediction = 1
 
     else:
